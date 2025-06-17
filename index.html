@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-900 text-white">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Result Manager</title>
+  <script src="app.js" defer></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-4">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4 text-center">Student Result Manager</h1>
+
+    <!-- Search Input -->
+    <div class="relative mb-6 max-w-md mx-auto">
+      <input id="searchInput" type="text" placeholder="Search by Student ID"
+             class="w-full px-4 py-2 pr-10 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none" />
+      <span id="clearSearch" class="absolute right-3 top-2.5 text-gray-400 cursor-pointer hidden">✖</span>
+    </div>
+
+    <!-- Form -->
+    <form id="resultForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-800 p-4 rounded-lg mb-6">
+      <input type="text" id="studentId" placeholder="Student ID (Roll)" required
+             class="form-input" />
+
+      <input type="number" id="quran" placeholder="Quran and Tajweed" class="form-input" />
+      <input type="number" id="hadith" placeholder="Hadith" class="form-input" />
+      <input type="number" id="fiqh1" placeholder="Fiqh1" class="form-input" />
+      <input type="number" id="arabic1" placeholder="Arabic1" class="form-input" />
+      <input type="number" id="bangla1" placeholder="Bangla1" class="form-input" />
+      <input type="number" id="bangla2" placeholder="Bangla2" class="form-input" />
+      <input type="number" id="english1" placeholder="English1" class="form-input" />
+      <input type="number" id="english2" placeholder="English2" class="form-input" />
+      <input type="number" id="ict" placeholder="ICT" class="form-input" />
+      <input type="number" id="mantiq" placeholder="Mantiq" class="form-input" />
+      <input type="number" id="ethics1" placeholder="Ethics/Bio/HigherMath1" class="form-input" />
+      <input type="number" id="ethics2" placeholder="Ethics/Bio/HigherMath2" class="form-input" />
+      <input type="number" id="isHistory" placeholder="Is History/Chemistry1" class="form-input" />
+      <input type="number" id="fiqh2" placeholder="Fiqh2/Chemistry2" class="form-input" />
+      <input type="number" id="sScience" placeholder="S Science/Physics1" class="form-input" />
+      <input type="number" id="arabic2" placeholder="Arabic2/Physics2" class="form-input" />
+
+      <input type="number" id="total" placeholder="Total Marks"
+             class="form-input bg-gray-700 text-white font-bold" disabled />
+
+      <button type="submit" class="md:col-span-3 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">
+        Submit
+      </button>
+    </form>
+
+    <!-- Data Table -->
+    <div id="dataList" class="overflow-x-auto bg-gray-800 p-4 rounded-lg shadow"></div>
+  </div>
+
+  <style>
+    .form-input {
+      @apply w-full px-3 py-2 rounded border border-gray-700 bg-gray-900 text-white focus:outline-none;
+    }
+  </style>
+</body>
+</html>
