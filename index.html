@@ -86,7 +86,7 @@
 
     // Load existing students from backend
     async function loadAll() {
-      const res = await fetch('https://script.google.com/macros/s/AKfycby6Cxp0ntvRv41O6S_jK_GRzifj5O10mYGefJZSr5xtO-knOsmHwmrJQPKEo1tEG8_-/exec');
+      const res = await fetch('https://script.google.com/macros/s/AKfycbwUdGIBhhO6XCjQIRAe8C6msi9NumGygC-S459-s_sFuUYfpkpksWeooaLS0a4uxw5x/exec');
       students = await res.json();
       refreshTable();
     }
@@ -121,7 +121,7 @@
           payload[sub] = parseVal(document.getElementById(id).value) || '';
         });
         payload.Total = parseVal(totalInput.value) || 0;
-        const res = await fetch('https://script.google.com/macros/s/AKfycby6Cxp0ntvRv41O6S_jK_GRzifj5O10mYGefJZSr5xtO-knOsmHwmrJQPKEo1tEG8_-/exec', {
+        const res = await fetch('https://script.google.com/macros/s/AKfycbwUdGIBhhO6XCjQIRAe8C6msi9NumGygC-S459-s_sFuUYfpkpksWeooaLS0a4uxw5x/exec', {
           method:'POST',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify(payload)
@@ -133,7 +133,7 @@
           existing[sub] = parseVal(document.getElementById(sub.replace(/\s+/g,'_')).value) || '';
         });
         existing.Total = parseVal(totalInput.value) || 0;
-        const res = await fetch(`https://script.google.com/macros/s/AKfycby6Cxp0ntvRv41O6S_jK_GRzifj5O10mYGefJZSr5xtO-knOsmHwmrJQPKEo1tEG8_-/exec?roll=${roll}`, {
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbwUdGIBhhO6XCjQIRAe8C6msi9NumGygC-S459-s_sFuUYfpkpksWeooaLS0a4uxw5x/exec?roll=${roll}`, {
           method:'PUT',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify(existing)
@@ -163,7 +163,7 @@
       const roll = rollInput.value.trim();
       if(!roll) return;
       if(!confirm(`Delete ${roll}?`)) return;
-      await fetch(`https://script.google.com/macros/s/AKfycby6Cxp0ntvRv41O6S_jK_GRzifj5O10mYGefJZSr5xtO-knOsmHwmrJQPKEo1tEG8_-/exec?roll=${roll}`, {method:'DELETE'});
+      await fetch(`https://script.google.com/macros/s/AKfycbwUdGIBhhO6XCjQIRAe8C6msi9NumGygC-S459-s_sFuUYfpkpksWeooaLS0a4uxw5x/exec?roll=${roll}`, {method:'DELETE'});
       students = students.filter(s=>s.roll!==roll);
       form.reset(); totalInput.value='';
       refreshTable(searchInput.value.trim());
