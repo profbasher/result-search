@@ -1,61 +1,187 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-900 text-white">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Student Result Manager</title>
-  <script src="app.js" defer></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="p-4">
-  <div class="max-w-7xl mx-auto">
-    <h1 class="text-2xl font-bold mb-4 text-center">Student Result Manager</h1>
+<html lang="en" class="bg-white text-black">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Result Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="p-4">
+    <div class="max-w-7xl mx-auto">
+      <h1 class="text-2xl font-bold mb-4">Student Result Manager</h1>
+      <form id="dataForm" class="grid md:grid-cols-4 gap-2 mb-6">
+        <input
+          name="roll"
+          id="roll"
+          required
+          placeholder="Student ID (Roll)"
+          class="border p-2"
+        />
+        <input
+          name="quran"
+          placeholder="Quran and Tajweed"
+          class="border p-2"
+        />
+        <input name="hadith" placeholder="Hadith" class="border p-2" />
+        <input name="fiqh1" placeholder="Fiqh1" class="border p-2" />
+        <input name="arabic1" placeholder="Arabic1" class="border p-2" />
+        <input name="bangla1" placeholder="Bangla1" class="border p-2" />
+        <input name="bangla2" placeholder="Bangla2" class="border p-2" />
+        <input name="english1" placeholder="English1" class="border p-2" />
+        <input name="english2" placeholder="English2" class="border p-2" />
+        <input name="ict" placeholder="ICT" class="border p-2" />
+        <input name="mantiq" placeholder="Mantiq" class="border p-2" />
+        <input
+          name="ethics1"
+          placeholder="Ethics1/Bio1/HMath1"
+          class="border p-2"
+        />
+        <input
+          name="ethics2"
+          placeholder="Ethics2/Bio2/HMath2"
+          class="border p-2"
+        />
+        <input name="history" placeholder="History/Chem1" class="border p-2" />
+        <input name="fiqh2" placeholder="Fiqh2/Chem2" class="border p-2" />
+        <input name="ss" placeholder="S Science/Physics1" class="border p-2" />
+        <input
+          name="arabic2"
+          placeholder="Arabic2/Physics2"
+          class="border p-2"
+        />
+        <input
+          id="total"
+          disabled
+          placeholder="Total Marks"
+          class="border p-2 bg-gray-100"
+        />
+        <button
+          type="submit"
+          class="bg-blue-500 text-white p-2 rounded col-span-2"
+        >
+          Save
+        </button>
+      </form>
 
-    <!-- Search Input -->
-    <div class="relative mb-6 max-w-md mx-auto">
-      <input id="searchInput" type="text" placeholder="Search by Student ID"
-             class="w-full px-4 py-2 pr-10 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none" />
-      <span id="clearSearch" class="absolute right-3 top-2.5 text-gray-400 cursor-pointer hidden">✖</span>
+      <div class="mb-2 flex items-center">
+        <input
+          id="search"
+          placeholder="Search by Roll"
+          class="border p-2 flex-1"
+        />
+        <button id="clearSearch" class="ml-2 text-red-500 font-bold">✖</button>
+      </div>
+
+      <table class="w-full text-sm border border-gray-300">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="border px-2">Roll</th>
+            <th class="border px-2">Total</th>
+            <th class="border px-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="dataBody"></tbody>
+      </table>
     </div>
 
-    <!-- Form -->
-    <form id="resultForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-800 p-4 rounded-lg mb-6">
-      <input type="text" id="studentId" placeholder="Student ID (Roll)" required
-             class="form-input" />
+    <script>
+      const form = document.getElementById("dataForm");
+      const rollInput = document.getElementById("roll");
+      const totalInput = document.getElementById("total");
+      const dataBody = document.getElementById("dataBody");
+      const searchInput = document.getElementById("search");
+      const clearSearch = document.getElementById("clearSearch");
 
-      <input type="number" id="quran" placeholder="Quran and Tajweed" class="form-input" />
-      <input type="number" id="hadith" placeholder="Hadith" class="form-input" />
-      <input type="number" id="fiqh1" placeholder="Fiqh1" class="form-input" />
-      <input type="number" id="arabic1" placeholder="Arabic1" class="form-input" />
-      <input type="number" id="bangla1" placeholder="Bangla1" class="form-input" />
-      <input type="number" id="bangla2" placeholder="Bangla2" class="form-input" />
-      <input type="number" id="english1" placeholder="English1" class="form-input" />
-      <input type="number" id="english2" placeholder="English2" class="form-input" />
-      <input type="number" id="ict" placeholder="ICT" class="form-input" />
-      <input type="number" id="mantiq" placeholder="Mantiq" class="form-input" />
-      <input type="number" id="ethics1" placeholder="Ethics/Bio/HigherMath1" class="form-input" />
-      <input type="number" id="ethics2" placeholder="Ethics/Bio/HigherMath2" class="form-input" />
-      <input type="number" id="isHistory" placeholder="Is History/Chemistry1" class="form-input" />
-      <input type="number" id="fiqh2" placeholder="Fiqh2/Chemistry2" class="form-input" />
-      <input type="number" id="sScience" placeholder="S Science/Physics1" class="form-input" />
-      <input type="number" id="arabic2" placeholder="Arabic2/Physics2" class="form-input" />
+      const api =
+        "https://script.google.com/macros/s/AKfycbz0AMmJYdZBciDqjvUXymSY5Y5rqBujdvQ14tTaDpDbKFsHk3KTSx4IWYU9H7FWWbR_/exec";
 
-      <input type="number" id="total" placeholder="Total Marks"
-             class="form-input bg-gray-700 text-white font-bold" disabled />
+      let allData = [];
 
-      <button type="submit" class="md:col-span-3 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">
-        Submit
-      </button>
-    </form>
+      form.addEventListener("input", () => {
+        const formData = new FormData(form);
+        let sum = 0;
+        for (let [k, v] of formData.entries()) {
+          if (k !== "roll" && !isNaN(eval(v))) {
+            try {
+              sum += eval(v);
+            } catch {}
+          }
+        }
+        totalInput.value = sum;
+      });
 
-    <!-- Data Table -->
-    <div id="dataList" class="overflow-x-auto bg-gray-800 p-4 rounded-lg shadow"></div>
-  </div>
+      rollInput.addEventListener("input", () => {
+        const exists = allData.some((d) => d.roll === rollInput.value.trim());
+        if (exists) {
+          alert("Please insert a unique value");
+        }
+      });
 
-  <style>
-    .form-input {
-      @apply w-full px-3 py-2 rounded border border-gray-700 bg-gray-900 text-white focus:outline-none;
-    }
-  </style>
-</body>
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const obj = Object.fromEntries(formData.entries());
+        obj.total = totalInput.value;
+
+        obj.action = "add"; // Include action in body
+        const res = await fetch(api, {
+          method: "POST",
+          body: JSON.stringify(obj),
+          headers: { "Content-Type": "application/json" },
+        });
+
+        form.reset();
+        loadData();
+      });
+
+      async function loadData() {
+        const res = await fetch(api + "?action=get");
+        allData = await res.json();
+        showTable(allData);
+      }
+
+      function showTable(data) {
+        dataBody.innerHTML = data
+          .map(
+            (d) => `
+        <tr>
+          <td class="border px-2">${d.roll}</td>
+          <td class="border px-2">${d.total}</td>
+          <td class="border px-2">
+            <button onclick="deleteData('${d.roll}')" class="text-red-500">Delete</button>
+          </td>
+        </tr>
+      `
+          )
+          .join("");
+      }
+
+      async function deleteData(roll) {
+        if (confirm("Are you sure?")) {
+          await fetch(api, {
+            method: "POST",
+            body: JSON.stringify({ action: "delete", roll }),
+            headers: { "Content-Type": "application/json" },
+          });
+
+          loadData();
+        }
+      }
+
+      searchInput.addEventListener("input", () => {
+        const q = searchInput.value.toLowerCase();
+        const filtered = allData.filter((d) =>
+          d.roll.toLowerCase().includes(q)
+        );
+        showTable(filtered);
+      });
+
+      clearSearch.addEventListener("click", () => {
+        searchInput.value = "";
+        showTable(allData);
+      });
+
+      loadData();
+    </script>
+  </body>
 </html>
