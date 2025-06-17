@@ -1,213 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Student Marks CRUD</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 text-gray-900 p-4">
-  <div class="max-w-4xl mx-auto">
-    <h1 class="text-3xl font-bold mb-4">Student Marks CRUD</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Student Marks CRUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-900 p-4">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-4">Student Marks CRUD</h1>
 
-    <!-- Form -->
-    <form id="student-form" class="space-y-2 border p-4 bg-white shadow rounded">
-      <div>
-        <label class="block font-semibold">Student ID (Roll)*</label>
-        <input id="roll" required class="border p-1 w-full" />
+      <!-- Form -->
+      <form
+        id="student-form"
+        class="space-y-2 border p-4 bg-white shadow rounded"
+      >
+        <div>
+          <label class="block font-semibold">Student ID (Roll)*</label>
+          <input id="roll" required class="border p-1 w-full" />
+        </div>
+
+        <div id="subjects" class="grid grid-cols-2 md:grid-cols-3 gap-2"></div>
+
+        <div>
+          <label class="block font-semibold">Total Marks</label>
+          <input id="total" class="border p-1 w-full bg-gray-100" disabled />
+        </div>
+
+        <div class="flex space-x-2">
+          <button
+            type="button"
+            onclick="createRecord()"
+            class="bg-green-600 text-white px-4 py-1 rounded"
+          >
+            Create
+          </button>
+          <button
+            type="button"
+            onclick="updateRecord()"
+            class="bg-blue-600 text-white px-4 py-1 rounded"
+          >
+            Update
+          </button>
+          <button
+            type="button"
+            onclick="deleteRecord()"
+            class="bg-red-600 text-white px-4 py-1 rounded"
+          >
+            Delete
+          </button>
+        </div>
+      </form>
+
+      <!-- Search -->
+      <div class="relative mt-6 mb-2">
+        <input
+          id="search"
+          placeholder="Search by Roll"
+          class="border p-1 w-full pr-8"
+        />
+        <span
+          id="clear-search"
+          class="hidden absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-xl"
+          >&times;</span
+        >
       </div>
 
-      <div id="subjects" class="grid grid-cols-2 md:grid-cols-3 gap-2"></div>
-
-      <div>
-        <label class="block font-semibold">Total Marks</label>
-        <input id="total" class="border p-1 w-full bg-gray-100" disabled />
-      </div>
-
-      <div class="flex space-x-2">
-        <button type="button" onclick="createRecord()" class="bg-green-600 text-white px-4 py-1 rounded">Create</button>
-        <button type="button" onclick="updateRecord()" class="bg-blue-600 text-white px-4 py-1 rounded">Update</button>
-        <button type="button" onclick="deleteRecord()" class="bg-red-600 text-white px-4 py-1 rounded">Delete</button>
-      </div>
-    </form>
-
-    <!-- Search -->
-    <div class="relative mt-6 mb-2">
-      <input id="search" placeholder="Search by Roll" class="border p-1 w-full pr-8"/>
-      <span id="clear-search" class="hidden absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-xl">&times;</span>
+      <!-- Table -->
+      <table class="w-full table-auto border-collapse border text-sm">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border p-1">Roll</th>
+            <th class="border p-1">Subjects…</th>
+            <th class="border p-1">Total</th>
+            <th class="border p-1">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
     </div>
 
-    <!-- Table -->
-    <table class="w-full table-auto border-collapse border text-sm">
-      <thead>
-        <tr class="bg-gray-200"><th class="border p-1">Roll</th><th class="border p-1">Subjects…</th><th class="border p-1">Total</th><th class="border p-1">Actions</th></tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
-  </div>
+    <script>
+      const SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbxjGjCKHbMxl-yiv8HhRG-Q09HhQAre2p9Pm5O8pPzYVaCCKUJtXyN0q9vykLx_GSF0/exec";
+      const SUBJECTS = [
+        "Quran and Tajweed",
+        "Hadith",
+        "Fiqh1",
+        "Arabic1",
+        "Bangla1",
+        "Bangla2",
+        "English1",
+        "English2",
+        "ICT",
+        "Mantiq",
+        "Ethics1",
+        "Ethics2",
+        "History1",
+        "Fiqh2",
+        "Science1",
+        "Arabic2",
+      ];
 
-  <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1E_Pa6DmRsI5e3aG4fPhkOf2M5o0MwUpTTppjQg-2pegvfKrmyFjFUGq63RSK4VFx/exec';
-    const SUBJECTS = [
-      "Quran and Tajweed","Hadith","Fiqh1","Arabic1","Bangla1","Bangla2","English1","English2",
-      "ICT","Mantiq","Ethics1","Ethics2","History1","Fiqh2","Science1","Arabic2"
-    ];
-
-    // Generate Subject Input Fields
-    const subjectsDiv = document.getElementById('subjects');
-    SUBJECTS.forEach(sub => {
-      const id = sub.replace(/\s+/g,'_');
-      subjectsDiv.innerHTML += `
+      // Generate Subject Input Fields
+      const subjectsDiv = document.getElementById("subjects");
+      SUBJECTS.forEach((sub) => {
+        const id = sub.replace(/\s+/g, "_");
+        subjectsDiv.innerHTML += `
         <div>
           <label class="block font-semibold">${sub}</label>
           <input id="${id}" data-sub="${sub}" class="border p-1 w-full subj"/>
         </div>`;
-    });
-
-    // State
-    let students = [];
-    const form = document.getElementById('student-form');
-    const rollInput = document.getElementById('roll');
-    const totalInput = document.getElementById('total');
-    const searchInput = document.getElementById('search');
-    const clearSearch = document.getElementById('clear-search');
-    const tbody = document.getElementById('table-body');
-
-    // Utilities
-    function parseVal(str) {
-      try { return Function('"use strict";return ('+str+')')(); }
-      catch(e){ return str.trim() === '' ? '' : str; }
-    }
-
-    function recalc() {
-      let sum = 0;
-      document.querySelectorAll('.subj').forEach(el => {
-        const val = parseVal(el.value);
-        el.value = (typeof val === 'number') ? val : el.value;
-        if (typeof val === 'number') sum += val;
       });
-      totalInput.value = sum;
-    }
 
-    // Load Data
-    async function loadAll() {
-      const res = await fetch(SCRIPT_URL);
-      const json = await res.json();
-      students = json;
-      refreshTable();
-    }
+      // State
+      let students = [];
+      const form = document.getElementById("student-form");
+      const rollInput = document.getElementById("roll");
+      const totalInput = document.getElementById("total");
+      const searchInput = document.getElementById("search");
+      const clearSearch = document.getElementById("clear-search");
+      const tbody = document.getElementById("table-body");
 
-    function refreshTable(filter='') {
-      const arr = students.filter(s => s.roll.includes(filter)).sort((a,b)=>a.roll.localeCompare(b.roll));
-      tbody.innerHTML = '';
-      arr.forEach(s=>{
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="border p-1">${s.roll}</td>
-          <td class="border p-1">${SUBJECTS.map(sub => s[sub] || '').join(' / ')}</td>
-          <td class="border p-1">${s.Total}</td>
-          <td class="border p-1"><button data-roll="${s.roll}" class="edit-btn text-blue-600">Edit</button></td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    // CRUD Handlers
-    async function createRecord() {
-      const roll = rollInput.value.trim();
-      if (!roll) return alert("Roll required");
-      if (students.find(s => s.roll === roll)) return alert("Roll already exists. Try Update instead.");
-
-      const payload = { roll };
-      SUBJECTS.forEach(sub => {
-        const id = sub.replace(/\s+/g,'_');
-        payload[sub] = parseVal(document.getElementById(id).value) || '';
-      });
-      payload.Total = parseVal(totalInput.value) || 0;
-
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      await res.json();
-      form.reset(); totalInput.value = '';
-      loadAll();
-    }
-
-    async function updateRecord() {
-      const roll = rollInput.value.trim();
-      if (!roll) return alert("Roll required");
-
-      const payload = { method: "update", roll };
-      SUBJECTS.forEach(sub => {
-        const id = sub.replace(/\s+/g,'_');
-        payload[sub] = parseVal(document.getElementById(id).value) || '';
-      });
-      payload.Total = parseVal(totalInput.value) || 0;
-
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      await res.json();
-      form.reset(); totalInput.value = '';
-      loadAll();
-    }
-
-    async function deleteRecord() {
-      const roll = rollInput.value.trim();
-      if (!roll) return alert("Roll required");
-      if (!confirm(`Delete record for roll ${roll}?`)) return;
-
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ method: "delete", roll })
-      });
-      await res.json();
-      form.reset(); totalInput.value = '';
-      loadAll();
-    }
-
-    // Events
-    document.getElementById('subjects').addEventListener('input', recalc);
-
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim();
-      clearSearch.classList.toggle('hidden', !q);
-      refreshTable(q);
-    });
-
-    clearSearch.addEventListener('click', () => {
-      searchInput.value = '';
-      clearSearch.classList.add('hidden');
-      refreshTable('');
-    });
-
-    tbody.addEventListener('click', e => {
-      if (e.target.matches('.edit-btn')) {
-        const roll = e.target.dataset.roll;
-        const s = students.find(x => x.roll === roll);
-        rollInput.value = s.roll;
-        SUBJECTS.forEach(sub => {
-          document.getElementById(sub.replace(/\s+/g,'_')).value = s[sub] || '';
-        });
-        totalInput.value = s.Total;
-      }
-    });
-
-    rollInput.addEventListener('blur', () => {
-      const v = rollInput.value.trim();
-      if (v && students.find(s => s.roll === v)) {
-        if (!confirm("Roll exists. Do you want to update instead?")) {
-          rollInput.focus();
+      // Utilities
+      function parseVal(str) {
+        try {
+          return Function('"use strict";return (' + str + ")")();
+        } catch (e) {
+          return str.trim() === "" ? "" : str;
         }
       }
-    });
 
-    loadAll();
-  </script>
-</body>
+      function recalc() {
+        let sum = 0;
+        document.querySelectorAll(".subj").forEach((el) => {
+          const val = parseVal(el.value);
+          el.value = typeof val === "number" ? val : el.value;
+          if (typeof val === "number") sum += val;
+        });
+        totalInput.value = sum;
+      }
+
+      // Load Data
+      // FIXED: Extract actual data from backend JSON
+      async function loadAll() {
+        const res = await fetch(SCRIPT_URL);
+        const json = await res.json();
+        students = json.data || []; // access the .data array correctly
+        refreshTable();
+      }
+
+      function refreshTable(filter = "") {
+        const arr = students
+          .filter((s) => s.roll.includes(filter))
+          .sort((a, b) => a.roll.localeCompare(b.roll));
+        tbody.innerHTML = "";
+        arr.forEach((s) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td class="border p-1">${s.roll}</td>
+          <td class="border p-1">${SUBJECTS.map((sub) => s[sub] || "").join(
+            " / "
+          )}</td>
+          <td class="border p-1">${s.Total}</td>
+          <td class="border p-1"><button data-roll="${
+            s.roll
+          }" class="edit-btn text-blue-600">Edit</button></td>
+        `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // CRUD Handlers
+      async function createRecord() {
+        const roll = rollInput.value.trim();
+        if (!roll) return alert("Roll required");
+        if (students.find((s) => s.roll === roll))
+          return alert("Roll already exists. Try Update instead.");
+
+        const payload = { roll };
+        SUBJECTS.forEach((sub) => {
+          const id = sub.replace(/\s+/g, "_");
+          payload[sub] = parseVal(document.getElementById(id).value) || "";
+        });
+        payload.Total = parseVal(totalInput.value) || 0;
+
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        await res.json();
+        form.reset();
+        totalInput.value = "";
+        loadAll();
+      }
+
+      async function updateRecord() {
+        const roll = rollInput.value.trim();
+        if (!roll) return alert("Roll required");
+
+        const payload = { method: "update", roll };
+        SUBJECTS.forEach((sub) => {
+          const id = sub.replace(/\s+/g, "_");
+          payload[sub] = parseVal(document.getElementById(id).value) || "";
+        });
+        payload.Total = parseVal(totalInput.value) || 0;
+
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        await res.json();
+        form.reset();
+        totalInput.value = "";
+        loadAll();
+      }
+
+      async function deleteRecord() {
+        const roll = rollInput.value.trim();
+        if (!roll) return alert("Roll required");
+        if (!confirm(`Delete record for roll ${roll}?`)) return;
+
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ method: "delete", roll }),
+        });
+        await res.json();
+        form.reset();
+        totalInput.value = "";
+        loadAll();
+      }
+
+      // Events
+      document.getElementById("subjects").addEventListener("input", recalc);
+
+      searchInput.addEventListener("input", () => {
+        const q = searchInput.value.trim();
+        clearSearch.classList.toggle("hidden", !q);
+        refreshTable(q);
+      });
+
+      clearSearch.addEventListener("click", () => {
+        searchInput.value = "";
+        clearSearch.classList.add("hidden");
+        refreshTable("");
+      });
+
+      tbody.addEventListener("click", (e) => {
+        if (e.target.matches(".edit-btn")) {
+          const roll = e.target.dataset.roll;
+          const s = students.find((x) => x.roll === roll);
+          rollInput.value = s.roll;
+          SUBJECTS.forEach((sub) => {
+            document.getElementById(sub.replace(/\s+/g, "_")).value =
+              s[sub] || "";
+          });
+          totalInput.value = s.Total;
+        }
+      });
+
+      rollInput.addEventListener("blur", () => {
+        const v = rollInput.value.trim();
+        if (v && students.find((s) => s.roll === v)) {
+          if (!confirm("Roll exists. Do you want to update instead?")) {
+            rollInput.focus();
+          }
+        }
+      });
+
+      loadAll();
+    </script>
+  </body>
 </html>
