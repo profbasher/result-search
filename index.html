@@ -6,47 +6,54 @@
   <title>Student Marks CRUD</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-white text-black p-4">
+<body class="bg-gray-100 text-gray-900 p-4">
   <div class="max-w-4xl mx-auto">
-    <h1 class="text-2xl font-bold mb-4">Student Marks CRUD</h1>
+    <h1 class="text-3xl font-bold mb-4">Student Marks CRUD</h1>
+
     <!-- Form -->
-    <form id="student-form" class="space-y-2 border p-4 rounded">
+    <form id="student-form" class="space-y-2 border p-4 bg-white shadow rounded">
       <div>
         <label class="block font-semibold">Student ID (Roll)*</label>
         <input id="roll" required class="border p-1 w-full" />
       </div>
-      <!-- Generate subject fields dynamically -->
-      <div id="subjects" class="grid grid-cols-2 gap-2"></div>
+
+      <div id="subjects" class="grid grid-cols-2 md:grid-cols-3 gap-2"></div>
+
       <div>
         <label class="block font-semibold">Total Marks</label>
         <input id="total" class="border p-1 w-full bg-gray-100" disabled />
       </div>
+
       <div class="flex space-x-2">
-        <button type="submit" class="bg-blue-600 text-white px-4 py-1 rounded">Save / Update</button>
-        <button type="button" id="delete" class="bg-red-600 text-white px-4 py-1 rounded">Delete</button>
+        <button type="button" onclick="createRecord()" class="bg-green-600 text-white px-4 py-1 rounded">Create</button>
+        <button type="button" onclick="updateRecord()" class="bg-blue-600 text-white px-4 py-1 rounded">Update</button>
+        <button type="button" onclick="deleteRecord()" class="bg-red-600 text-white px-4 py-1 rounded">Delete</button>
       </div>
     </form>
+
     <!-- Search -->
     <div class="relative mt-6 mb-2">
       <input id="search" placeholder="Search by Roll" class="border p-1 w-full pr-8"/>
-      <span id="clear-search" class="hidden absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer">&times;</span>
+      <span id="clear-search" class="hidden absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-xl">&times;</span>
     </div>
+
     <!-- Table -->
-    <table class="w-full table-auto border-collapse border">
+    <table class="w-full table-auto border-collapse border text-sm">
       <thead>
-        <tr class="bg-gray-200"><th>Roll</th><th>Subjects…</th><th>Total</th><th>Actions</th></tr>
+        <tr class="bg-gray-200"><th class="border p-1">Roll</th><th class="border p-1">Subjects…</th><th class="border p-1">Total</th><th class="border p-1">Actions</th></tr>
       </thead>
       <tbody id="table-body"></tbody>
     </table>
   </div>
 
   <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1E_Pa6DmRsI5e3aG4fPhkOf2M5o0MwUpTTppjQg-2pegvfKrmyFjFUGq63RSK4VFx/exec';
     const SUBJECTS = [
       "Quran and Tajweed","Hadith","Fiqh1","Arabic1","Bangla1","Bangla2","English1","English2",
       "ICT","Mantiq","Ethics1","Ethics2","History1","Fiqh2","Science1","Arabic2"
     ];
 
-    // Build subject inputs
+    // Generate Subject Input Fields
     const subjectsDiv = document.getElementById('subjects');
     SUBJECTS.forEach(sub => {
       const id = sub.replace(/\s+/g,'_');
@@ -57,141 +64,144 @@
         </div>`;
     });
 
-    // State + utils
+    // State
     let students = [];
     const form = document.getElementById('student-form');
     const rollInput = document.getElementById('roll');
     const totalInput = document.getElementById('total');
-    const deleteBtn = document.getElementById('delete');
-    const tbody = document.getElementById('table-body');
     const searchInput = document.getElementById('search');
     const clearSearch = document.getElementById('clear-search');
+    const tbody = document.getElementById('table-body');
 
-    // Evaluate arithmetic inside inputs
+    // Utilities
     function parseVal(str) {
       try { return Function('"use strict";return ('+str+')')(); }
       catch(e){ return str.trim() === '' ? '' : str; }
     }
 
-    // Recalculate total
     function recalc() {
-      let sum=0;
-      document.querySelectorAll('.subj').forEach(el=>{
+      let sum = 0;
+      document.querySelectorAll('.subj').forEach(el => {
         const val = parseVal(el.value);
         el.value = (typeof val === 'number') ? val : el.value;
-        if(typeof val==='number') sum += val;
+        if (typeof val === 'number') sum += val;
       });
       totalInput.value = sum;
     }
 
-    // Load existing students from backend
+    // Load Data
     async function loadAll() {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbyLEoMD1jgVqDxy8ZyYXch4eTSbikhBKOvbY1EtH2jlEJUTWkzURnmeehoX77L-hVOf/exec');
-      students = await res.json();
+      const res = await fetch(SCRIPT_URL);
+      const json = await res.json();
+      students = json;
       refreshTable();
     }
 
-    // Render table with optional filter
     function refreshTable(filter='') {
       const arr = students.filter(s => s.roll.includes(filter)).sort((a,b)=>a.roll.localeCompare(b.roll));
       tbody.innerHTML = '';
       arr.forEach(s=>{
         const row = document.createElement('tr');
-        row.innerHTML = `<td class="border p-1">${s.roll}</td>
-           <td class="border p-1">${SUBJECTS.map(sub=>s[sub]||'').join(' / ')}</td>
-           <td class="border p-1">${s.Total}</td>
-           <td class="border p-1">
-             <button data-roll="${s.roll}" class="edit-btn text-blue-600">Edit</button>
-           </td>`;
+        row.innerHTML = `
+          <td class="border p-1">${s.roll}</td>
+          <td class="border p-1">${SUBJECTS.map(sub => s[sub] || '').join(' / ')}</td>
+          <td class="border p-1">${s.Total}</td>
+          <td class="border p-1"><button data-roll="${s.roll}" class="edit-btn text-blue-600">Edit</button></td>
+        `;
         tbody.appendChild(row);
       });
     }
 
-    // Form submit for create/update
-    form.addEventListener('submit', async e=>{
-      e.preventDefault();
+    // CRUD Handlers
+    async function createRecord() {
       const roll = rollInput.value.trim();
-      if(!roll) return alert('Roll required');
-      const existing = students.find(s=>s.roll===roll);
-      if(!existing) {
-        // new
-        const payload = {roll};
-        SUBJECTS.forEach(sub=>{
-          const id = sub.replace(/\s+/g,'_');
-          payload[sub] = parseVal(document.getElementById(id).value) || '';
-        });
-        payload.Total = parseVal(totalInput.value) || 0;
-        const res = await fetch('https://script.google.com/macros/s/AKfycbyLEoMD1jgVqDxy8ZyYXch4eTSbikhBKOvbY1EtH2jlEJUTWkzURnmeehoX77L-hVOf/exec', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        });
-        students.push(await res.json());
-      } else {
-        // update
-        SUBJECTS.forEach(sub=>{
-          existing[sub] = parseVal(document.getElementById(sub.replace(/\s+/g,'_')).value) || '';
-        });
-        existing.Total = parseVal(totalInput.value) || 0;
-        const res = await fetch(`https://script.google.com/macros/s/AKfycbyLEoMD1jgVqDxy8ZyYXch4eTSbikhBKOvbY1EtH2jlEJUTWkzURnmeehoX77L-hVOf/exec?roll=${roll}`, {
-          method:'PUT',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(existing)
-        });
-        await res.json();
-      }
+      if (!roll) return alert("Roll required");
+      if (students.find(s => s.roll === roll)) return alert("Roll already exists. Try Update instead.");
+
+      const payload = { roll };
+      SUBJECTS.forEach(sub => {
+        const id = sub.replace(/\s+/g,'_');
+        payload[sub] = parseVal(document.getElementById(id).value) || '';
+      });
+      payload.Total = parseVal(totalInput.value) || 0;
+
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await res.json();
+      form.reset(); totalInput.value = '';
       loadAll();
-      form.reset();
-      totalInput.value = '';
+    }
+
+    async function updateRecord() {
+      const roll = rollInput.value.trim();
+      if (!roll) return alert("Roll required");
+
+      const payload = { method: "update", roll };
+      SUBJECTS.forEach(sub => {
+        const id = sub.replace(/\s+/g,'_');
+        payload[sub] = parseVal(document.getElementById(id).value) || '';
+      });
+      payload.Total = parseVal(totalInput.value) || 0;
+
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      await res.json();
+      form.reset(); totalInput.value = '';
+      loadAll();
+    }
+
+    async function deleteRecord() {
+      const roll = rollInput.value.trim();
+      if (!roll) return alert("Roll required");
+      if (!confirm(`Delete record for roll ${roll}?`)) return;
+
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method: "delete", roll })
+      });
+      await res.json();
+      form.reset(); totalInput.value = '';
+      loadAll();
+    }
+
+    // Events
+    document.getElementById('subjects').addEventListener('input', recalc);
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim();
+      clearSearch.classList.toggle('hidden', !q);
+      refreshTable(q);
     });
 
-    // Edit button
-    tbody.addEventListener('click', e=>{
-      if(e.target.matches('.edit-btn')) {
+    clearSearch.addEventListener('click', () => {
+      searchInput.value = '';
+      clearSearch.classList.add('hidden');
+      refreshTable('');
+    });
+
+    tbody.addEventListener('click', e => {
+      if (e.target.matches('.edit-btn')) {
         const roll = e.target.dataset.roll;
-        const s = students.find(x=>x.roll===roll);
+        const s = students.find(x => x.roll === roll);
         rollInput.value = s.roll;
-        SUBJECTS.forEach(sub=>{
+        SUBJECTS.forEach(sub => {
           document.getElementById(sub.replace(/\s+/g,'_')).value = s[sub] || '';
         });
         totalInput.value = s.Total;
       }
     });
 
-    // Delete
-    deleteBtn.addEventListener('click', async ()=>{
-      const roll = rollInput.value.trim();
-      if(!roll) return;
-      if(!confirm(`Delete ${roll}?`)) return;
-      await fetch(`https://script.google.com/macros/s/AKfycbyLEoMD1jgVqDxy8ZyYXch4eTSbikhBKOvbY1EtH2jlEJUTWkzURnmeehoX77L-hVOf/exec?roll=${roll}`, {method:'DELETE'});
-      students = students.filter(s=>s.roll!==roll);
-      form.reset(); totalInput.value='';
-      refreshTable(searchInput.value.trim());
-    });
-
-    // Live arithmetic on input
-    document.getElementById('subjects').addEventListener('input',()=>recalc());
-
-    // Search
-    searchInput.addEventListener('input',()=>{
-      const q = searchInput.value.trim();
-      clearSearch.classList.toggle('hidden', !q);
-      refreshTable(q);
-    });
-    clearSearch.addEventListener('click', ()=>{
-      searchInput.value = '';
-      clearSearch.classList.add('hidden');
-      refreshTable('');
-    });
-
-    // Roll uniqueness on blur
-    rollInput.addEventListener('blur', ()=>{
+    rollInput.addEventListener('blur', () => {
       const v = rollInput.value.trim();
-      if(v && students.find(s=>s.roll===v)) {
-        if(confirm('Duplicate Roll. Do you want to edit it instead?')) {
-          // treat as edit
-        } else {
-          alert('Please insert a unique value');
+      if (v && students.find(s => s.roll === v)) {
+        if (!confirm("Roll exists. Do you want to update instead?")) {
           rollInput.focus();
         }
       }
