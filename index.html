@@ -1,187 +1,203 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-white text-black">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Student Result Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="p-4">
-    <div class="max-w-7xl mx-auto">
-      <h1 class="text-2xl font-bold mb-4">Student Result Manager</h1>
-      <form id="dataForm" class="grid md:grid-cols-4 gap-2 mb-6">
-        <input
-          name="roll"
-          id="roll"
-          required
-          placeholder="Student ID (Roll)"
-          class="border p-2"
-        />
-        <input
-          name="quran"
-          placeholder="Quran and Tajweed"
-          class="border p-2"
-        />
-        <input name="hadith" placeholder="Hadith" class="border p-2" />
-        <input name="fiqh1" placeholder="Fiqh1" class="border p-2" />
-        <input name="arabic1" placeholder="Arabic1" class="border p-2" />
-        <input name="bangla1" placeholder="Bangla1" class="border p-2" />
-        <input name="bangla2" placeholder="Bangla2" class="border p-2" />
-        <input name="english1" placeholder="English1" class="border p-2" />
-        <input name="english2" placeholder="English2" class="border p-2" />
-        <input name="ict" placeholder="ICT" class="border p-2" />
-        <input name="mantiq" placeholder="Mantiq" class="border p-2" />
-        <input
-          name="ethics1"
-          placeholder="Ethics1/Bio1/HMath1"
-          class="border p-2"
-        />
-        <input
-          name="ethics2"
-          placeholder="Ethics2/Bio2/HMath2"
-          class="border p-2"
-        />
-        <input name="history" placeholder="History/Chem1" class="border p-2" />
-        <input name="fiqh2" placeholder="Fiqh2/Chem2" class="border p-2" />
-        <input name="ss" placeholder="S Science/Physics1" class="border p-2" />
-        <input
-          name="arabic2"
-          placeholder="Arabic2/Physics2"
-          class="border p-2"
-        />
-        <input
-          id="total"
-          disabled
-          placeholder="Total Marks"
-          class="border p-2 bg-gray-100"
-        />
-        <button
-          type="submit"
-          class="bg-blue-500 text-white p-2 rounded col-span-2"
-        >
-          Save
-        </button>
-      </form>
-
-      <div class="mb-2 flex items-center">
-        <input
-          id="search"
-          placeholder="Search by Roll"
-          class="border p-2 flex-1"
-        />
-        <button id="clearSearch" class="ml-2 text-red-500 font-bold">✖</button>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Student Marks CRUD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-black p-4">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4">Student Marks CRUD</h1>
+    <!-- Form -->
+    <form id="student-form" class="space-y-2 border p-4 rounded">
+      <div>
+        <label class="block font-semibold">Student ID (Roll)*</label>
+        <input id="roll" required class="border p-1 w-full" />
       </div>
-
-      <table class="w-full text-sm border border-gray-300">
-        <thead>
-          <tr class="bg-gray-100">
-            <th class="border px-2">Roll</th>
-            <th class="border px-2">Total</th>
-            <th class="border px-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="dataBody"></tbody>
-      </table>
+      <!-- Generate subject fields dynamically -->
+      <div id="subjects" class="grid grid-cols-2 gap-2"></div>
+      <div>
+        <label class="block font-semibold">Total Marks</label>
+        <input id="total" class="border p-1 w-full bg-gray-100" disabled />
+      </div>
+      <div class="flex space-x-2">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-1 rounded">Save / Update</button>
+        <button type="button" id="delete" class="bg-red-600 text-white px-4 py-1 rounded">Delete</button>
+      </div>
+    </form>
+    <!-- Search -->
+    <div class="relative mt-6 mb-2">
+      <input id="search" placeholder="Search by Roll" class="border p-1 w-full pr-8"/>
+      <span id="clear-search" class="hidden absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer">&times;</span>
     </div>
+    <!-- Table -->
+    <table class="w-full table-auto border-collapse border">
+      <thead>
+        <tr class="bg-gray-200"><th>Roll</th><th>Subjects…</th><th>Total</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
 
-    <script>
-      const form = document.getElementById("dataForm");
-      const rollInput = document.getElementById("roll");
-      const totalInput = document.getElementById("total");
-      const dataBody = document.getElementById("dataBody");
-      const searchInput = document.getElementById("search");
-      const clearSearch = document.getElementById("clearSearch");
+  <script>
+    const SUBJECTS = [
+      "Quran and Tajweed","Hadith","Fiqh1","Arabic1","Bangla1","Bangla2","English1","English2",
+      "ICT","Mantiq","Ethics1","Ethics2","History1","Fiqh2","Science1","Arabic2"
+    ];
 
-      const api =
-        "https://script.google.com/macros/s/AKfycbxKv9QsZ7gWAU2TQDWEOanA1GP82P40RjfViJxcmzE5YXQd5L2Igph1g_YW7UQoeNYs/exec";
+    // Build subject inputs
+    const subjectsDiv = document.getElementById('subjects');
+    SUBJECTS.forEach(sub => {
+      const id = sub.replace(/\s+/g,'_');
+      subjectsDiv.innerHTML += `
+        <div>
+          <label class="block font-semibold">${sub}</label>
+          <input id="${id}" data-sub="${sub}" class="border p-1 w-full subj"/>
+        </div>`;
+    });
 
-      let allData = [];
+    // State + utils
+    let students = [];
+    const form = document.getElementById('student-form');
+    const rollInput = document.getElementById('roll');
+    const totalInput = document.getElementById('total');
+    const deleteBtn = document.getElementById('delete');
+    const tbody = document.getElementById('table-body');
+    const searchInput = document.getElementById('search');
+    const clearSearch = document.getElementById('clear-search');
 
-      form.addEventListener("input", () => {
-        const formData = new FormData(form);
-        let sum = 0;
-        for (let [k, v] of formData.entries()) {
-          if (k !== "roll" && !isNaN(eval(v))) {
-            try {
-              sum += eval(v);
-            } catch {}
-          }
-        }
-        totalInput.value = sum;
+    // Evaluate arithmetic inside inputs
+    function parseVal(str) {
+      try { return Function('"use strict";return ('+str+')')(); }
+      catch(e){ return str.trim() === '' ? '' : str; }
+    }
+
+    // Recalculate total
+    function recalc() {
+      let sum=0;
+      document.querySelectorAll('.subj').forEach(el=>{
+        const val = parseVal(el.value);
+        el.value = (typeof val === 'number') ? val : el.value;
+        if(typeof val==='number') sum += val;
       });
+      totalInput.value = sum;
+    }
 
-      rollInput.addEventListener("input", () => {
-        const exists = allData.some((d) => d.roll === rollInput.value.trim());
-        if (exists) {
-          alert("Please insert a unique value");
-        }
+    // Load existing students from backend
+    async function loadAll() {
+      const res = await fetch('https://script.google.com/macros/s/AKfycby6Cxp0ntvRv41O6S_jK_GRzifj5O10mYGefJZSr5xtO-knOsmHwmrJQPKEo1tEG8_-/exec');
+      students = await res.json();
+      refreshTable();
+    }
+
+    // Render table with optional filter
+    function refreshTable(filter='') {
+      const arr = students.filter(s => s.roll.includes(filter)).sort((a,b)=>a.roll.localeCompare(b.roll));
+      tbody.innerHTML = '';
+      arr.forEach(s=>{
+        const row = document.createElement('tr');
+        row.innerHTML = `<td class="border p-1">${s.roll}</td>
+           <td class="border p-1">${SUBJECTS.map(sub=>s[sub]||'').join(' / ')}</td>
+           <td class="border p-1">${s.Total}</td>
+           <td class="border p-1">
+             <button data-roll="${s.roll}" class="edit-btn text-blue-600">Edit</button>
+           </td>`;
+        tbody.appendChild(row);
       });
+    }
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const obj = Object.fromEntries(formData.entries());
-        obj.total = totalInput.value;
-
-        obj.action = "add"; // Include action in body
-        const res = await fetch(api, {
-          method: "POST",
-          body: JSON.stringify(obj),
-          headers: { "Content-Type": "application/json" },
+    // Form submit for create/update
+    form.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const roll = rollInput.value.trim();
+      if(!roll) return alert('Roll required');
+      const existing = students.find(s=>s.roll===roll);
+      if(!existing) {
+        // new
+        const payload = {roll};
+        SUBJECTS.forEach(sub=>{
+          const id = sub.replace(/\s+/g,'_');
+          payload[sub] = parseVal(document.getElementById(id).value) || '';
         });
-
-        form.reset();
-        loadData();
-      });
-
-      async function loadData() {
-        const res = await fetch(api + "?action=get");
-        allData = await res.json();
-        showTable(allData);
+        payload.Total = parseVal(totalInput.value) || 0;
+        const res = await fetch('https://script.google.com/macros/s/AKfycby6Cxp0ntvRv41O6S_jK_GRzifj5O10mYGefJZSr5xtO-knOsmHwmrJQPKEo1tEG8_-/exec', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        students.push(await res.json());
+      } else {
+        // update
+        SUBJECTS.forEach(sub=>{
+          existing[sub] = parseVal(document.getElementById(sub.replace(/\s+/g,'_')).value) || '';
+        });
+        existing.Total = parseVal(totalInput.value) || 0;
+        const res = await fetch(`https://script.google.com/macros/s/AKfycby6Cxp0ntvRv41O6S_jK_GRzifj5O10mYGefJZSr5xtO-knOsmHwmrJQPKEo1tEG8_-/exec?roll=${roll}`, {
+          method:'PUT',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(existing)
+        });
+        await res.json();
       }
+      loadAll();
+      form.reset();
+      totalInput.value = '';
+    });
 
-      function showTable(data) {
-        dataBody.innerHTML = data
-          .map(
-            (d) => `
-        <tr>
-          <td class="border px-2">${d.roll}</td>
-          <td class="border px-2">${d.total}</td>
-          <td class="border px-2">
-            <button onclick="deleteData('${d.roll}')" class="text-red-500">Delete</button>
-          </td>
-        </tr>
-      `
-          )
-          .join("");
+    // Edit button
+    tbody.addEventListener('click', e=>{
+      if(e.target.matches('.edit-btn')) {
+        const roll = e.target.dataset.roll;
+        const s = students.find(x=>x.roll===roll);
+        rollInput.value = s.roll;
+        SUBJECTS.forEach(sub=>{
+          document.getElementById(sub.replace(/\s+/g,'_')).value = s[sub] || '';
+        });
+        totalInput.value = s.Total;
       }
+    });
 
-      async function deleteData(roll) {
-        if (confirm("Are you sure?")) {
-          await fetch(api, {
-            method: "POST",
-            body: JSON.stringify({ action: "delete", roll }),
-            headers: { "Content-Type": "application/json" },
-          });
+    // Delete
+    deleteBtn.addEventListener('click', async ()=>{
+      const roll = rollInput.value.trim();
+      if(!roll) return;
+      if(!confirm(`Delete ${roll}?`)) return;
+      await fetch(`https://script.google.com/macros/s/AKfycby6Cxp0ntvRv41O6S_jK_GRzifj5O10mYGefJZSr5xtO-knOsmHwmrJQPKEo1tEG8_-/exec?roll=${roll}`, {method:'DELETE'});
+      students = students.filter(s=>s.roll!==roll);
+      form.reset(); totalInput.value='';
+      refreshTable(searchInput.value.trim());
+    });
 
-          loadData();
+    // Live arithmetic on input
+    document.getElementById('subjects').addEventListener('input',()=>recalc());
+
+    // Search
+    searchInput.addEventListener('input',()=>{
+      const q = searchInput.value.trim();
+      clearSearch.classList.toggle('hidden', !q);
+      refreshTable(q);
+    });
+    clearSearch.addEventListener('click', ()=>{
+      searchInput.value = '';
+      clearSearch.classList.add('hidden');
+      refreshTable('');
+    });
+
+    // Roll uniqueness on blur
+    rollInput.addEventListener('blur', ()=>{
+      const v = rollInput.value.trim();
+      if(v && students.find(s=>s.roll===v)) {
+        if(confirm('Duplicate Roll. Do you want to edit it instead?')) {
+          // treat as edit
+        } else {
+          alert('Please insert a unique value');
+          rollInput.focus();
         }
       }
+    });
 
-      searchInput.addEventListener("input", () => {
-        const q = searchInput.value.toLowerCase();
-        const filtered = allData.filter((d) =>
-          d.roll.toLowerCase().includes(q)
-        );
-        showTable(filtered);
-      });
-
-      clearSearch.addEventListener("click", () => {
-        searchInput.value = "";
-        showTable(allData);
-      });
-
-      loadData();
-    </script>
-  </body>
+    loadAll();
+  </script>
+</body>
 </html>
